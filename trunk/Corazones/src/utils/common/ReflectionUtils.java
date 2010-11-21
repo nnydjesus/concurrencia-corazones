@@ -1,5 +1,6 @@
 package utils.common;
 
+
  
 /**
  * @author Ronny
@@ -7,7 +8,7 @@ package utils.common;
  */
 public class ReflectionUtils {
 
-	public static Object invokeMethod(Object model, String actionName) {
+	protected static Object privateInvokeMethod(Object model, String actionName) {
 		try {
 			return model.getClass().getMethod(actionName, new Class[]{}).invoke(model, new Object[]{});
 		}
@@ -16,14 +17,26 @@ public class ReflectionUtils {
 		}
 	}
 	
-	public static void invokeMethod(Object model, String actionName, Object... args) {
+	protected static void privateInvokeVoidMethod(Object model, String actionName, Object... args) {
 		try {
-			model.getClass().getMethod(actionName, model.getClass()).invoke(model, args);
+			model.getClass().getMethod(actionName, Object.class).invoke(model, args);
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 		
 	}
+
+	public static void invokeMethod(Object jugador, String lectura) {
+		String[] split;
+		if (lectura.contains("&")) {
+			split = lectura.split("&");			
+			privateInvokeVoidMethod(jugador, split[0], split[1]);
+		}else if (lectura.contains("#")) {			
+			split = lectura.split("#");			
+			privateInvokeVoidMethod(jugador, split[0], utils.common.Serializable.deStringAObjeto(split[1]));
+		}else 
+			privateInvokeMethod(jugador, lectura);
+	}	
 
 }

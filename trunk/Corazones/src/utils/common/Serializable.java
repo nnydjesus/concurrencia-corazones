@@ -6,12 +6,16 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import model.carta.Carta;
+import model.jugador.Jugador;
 
+/**
+ * @author Ronny
+ *
+ */
 public class Serializable {
 	public final static String ISO = "ISO8859-1";
 	
-	public static String deObjetoAByte(java.io.Serializable unObjetoSerializable){
+	public static String deObjetoAString(java.io.Serializable unObjetoSerializable){
 		ByteArrayOutputStream bs= new ByteArrayOutputStream();
 		ObjectOutputStream os;
 		try {
@@ -25,13 +29,13 @@ public class Serializable {
 	}
 	
 	
-	public static Object deStringAObjeto(String string){		
+	public static Object deStringAObjeto(String string){
 		ObjectInputStream is;
-		Carta unObjetoSerializable = null;
+		Object unObjetoSerializable = null;
 		try {
-			ByteArrayInputStream bs= new ByteArrayInputStream(string.getBytes(ISO)); // bytes es el byte[]
+			ByteArrayInputStream bs= new ByteArrayInputStream(string.getBytes(ISO));
 			is = new ObjectInputStream(bs);
-			unObjetoSerializable = (Carta)is.readObject();
+			unObjetoSerializable = is.readObject();
 			is.close();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -41,8 +45,8 @@ public class Serializable {
 	}
 	
 	public static void main(String[] args) {
-		Carta c =new Carta();
-		String s = deObjetoAByte(c);
+		Jugador c =new Jugador();
+		String s = deObjetoAString(c);
 		System.out.println(s);
 		System.out.println(deStringAObjeto(s));
 	}
