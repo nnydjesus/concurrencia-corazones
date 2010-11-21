@@ -8,13 +8,15 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Vector;
 
-public final class Mesa extends Vector {
+public final class Mesa extends Vector<Carta> {
+
+	private static final int TOPE = 4;
 	// Atributo, "tope" es el total de cartas del vector
 	private static  int cantJugadores; // Depende de la cantidad de Jugadores
 
 	// Constructor de la clase.
 	public Mesa() {		
-		super(cantJugadores);
+		super(cantJugadores);		
 	}
 	
 	public void setCantJugadores(int cantJugadores) {
@@ -55,31 +57,35 @@ public final class Mesa extends Vector {
 	 * mesa.
 	 */
 	public int devolver_carta_masAlta() {
-		final String paloCorrespondiente = this.devolver_Palo(this.devolverCarta(0));
-		String cartaActual;
+		final Palo paloCorrespondiente = this.get(0).getPalo();
+		Carta cartaActual;
 		int iCartaMax = 0;
 		for (int i = 1; i < TOPE; i++) {
-			cartaActual = this.devolverCarta(i);
+			cartaActual = this.get(i);
 			if (compararCarta(paloCorrespondiente, this
-					.devolverCarta(iCartaMax), cartaActual)) {
+					.get(iCartaMax), cartaActual)) {
 				iCartaMax = i;
 			}
 		}
 		return iCartaMax;
 	}
 
-	private boolean compararCarta(final String paloCorrespondiente,
-			String cartaMax, String cartaActual) {
-		return (paloCorrespondiente.equals(this.devolver_Palo(cartaActual))
-				&& ( this.devolverNumero(cartaMax) < this.devolverNumero(cartaActual)));
+	private boolean compararCarta(final Palo paloCorrespondiente,
+			Carta carta, Carta cartaActual) {
+		return (paloCorrespondiente.equals(cartaActual.getPalo())
+				&& ( carta.getNumero() < cartaActual.getNumero()));
 	}
 
 	public int numJugadorCartaMasAlta(int jugadorQueTiroPrimero) {
 		return (jugadorQueTiroPrimero + this.devolver_carta_masAlta()) % TOPE;
 	}
 	
-	
 
+	public void ingresar3Cartas(Carta[] cartas, int i) {
+		//TODO		
+	}	
+	
+	
 	public static void main(String argv[]) {
 		try {
 			
@@ -99,12 +105,12 @@ public final class Mesa extends Vector {
 			BufferedReader juego = new BufferedReader(new InputStreamReader(socketjuego.getInputStream()));
 			
 			while(true){
-								
+				
 			}
 		}catch (IOException e) {
 			System.out.println("Could not listen on port: 1234");
-			}
-	}	
-	
-	
+		}
+	}
+
+		
 }
