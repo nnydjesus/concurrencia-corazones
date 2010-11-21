@@ -7,6 +7,7 @@ import java.io.PrintStream;
 import java.net.Socket;
 
 import model.carta.Carta;
+import model.carta.Mazo;
 import model.carta.Palo;
 import utils.common.ReflectionUtils;
 import utils.common.Serializable;
@@ -20,28 +21,34 @@ import utils.common.Serializable;
  * Agregarle las cartas
  */
 
-public class Jugador {
+public class Jugador implements java.io.Serializable {
+	private static final long serialVersionUID = 1L;
+	
 	/* Atributos */
 	private String nombre;
 	private int puntaje;
-	private Pozojugador pozo;
-	private  Carta[] mano =  new Carta[13];
+	// private Pozojugador pozo;
+	private Carta[] mano = new Carta[Mazo.NUM_CARTA_POR_MAZO];
 	int x = 12;
 	private static BufferedReader serverIn;
 	private static PrintStream clienteOut;
 
-	/* Constructor */
-	public Jugador(String name) {
-		nombre = name;
+	/* Constructors */
+
+	public Jugador() {
 		puntaje = 0;
-		pozo = new Pozojugador();
 		cargar();
 	}
-	
-	public void cargar(){
-		mano[0] = new Carta();
-		mano[1] = new Carta();
-		mano[2] = new Carta();
+
+	public Jugador(String name) {
+		this();
+		nombre = name;
+	}
+
+	public void cargar() {
+		for (int i = 0; i < Mazo.NUM_CARTA_POR_MAZO; i++) {
+			mano[i] = new Carta();
+		}
 	}
 
 	public void inicializarPuntaje() {
@@ -49,55 +56,66 @@ public class Jugador {
 	}
 
 	/*
-	 * Cambia el nombre del jugador actual por el ingresado como par�metro
-	 */
-	public void cambiar_nombre(String s) {
-		nombre = s;
-	}
-
-	/*
 	 * Incrementa el puntaje del jugador en "n" unidades.
 	 */
-	public void incrementar_puntaje(int n) {
-		puntaje += n;
+	public void incrementarPuntaje(Object n) {
+		puntaje += Integer.parseInt((String) n);
 	}
 
-	/*
-	 * Incrementa el puntaje del jugador con los puntos que acarre� en el pozo.
-	 */
-	public void calcular_puntaje() {
-		puntaje += pozo.devolver_puntaje();
+	/* Envia a la mesa la carta mas conveniente */
+	public void tirarCartaAMesa() {
+		clienteOut.println(Serializable.deObjetoAString(this.nextCarta()));
 	}
-
 	
-
-
-	/* Envia a la baza la carta mas conveniente */
-	public void tirar_carta_AMesa() {
-		clienteOut.println(Serializable.deObjetoAByte(this.mano[0]));
+	private Carta nextCarta(){
+		Carta c = null;
+		int i=0;
+		boolean sigo = true;
+		while(i<Mazo.NUM_CARTA_POR_MAZO && sigo ){
+			if(!this.mano[i].getPalo().equals(Palo.NADA)){
+				c=mano[i];
+				mano[i]=new Carta();
+				sigo = false;
+			}
+			i++;
+		}
+		return c;
 	}
 
 	public Carta[] getMano() {
 		return mano;
 	}
 
-
 	public void elegir3Cartas() {
-		clienteOut.println(Serializable.deObjetoAByte(mano[0]));
-		clienteOut.println(Serializable.deObjetoAByte(mano[1]));
-		clienteOut.println(Serializable.deObjetoAByte(mano[2]));
+		Carta[] cartas = new Carta[] { this.nextCarta(),
+				this.nextCarta(), this.nextCarta() };
+		
+		clienteOut.println(Serializable.deObjetoAString(cartas));
 	}
 
-	 /* Inserta una carta "c" dada en la posicion "i" dada */
-    public void insertar_carta(Carta c, int i){
-			mano[i]= c;
-    }
+	public void recibir3Cartas(Object cartas) {
+		for (Carta carta : (Carta[])cartas) {
+			this.recibirCarta(carta);
+		}
+	}
 
-    
+	public void recibirCarta(Object carta) {
+		System.out.println(carta);
+		int i = 0;
+		boolean sigo=true;
+		while (sigo && i < Mazo.NUM_CARTA_POR_MAZO) {
+			if (this.mano[i].getPalo().equals(Palo.NADA)) {
+				this.mano[i] = (Carta) carta;
+				sigo=false;
+			}
+			i++;
+		}
+	}
+
 	/*
 	 * Devuelve true si en la baraja se encuentran cartas de un "palo" dado.
 	 */
-	public boolean hay_cartas_delPalo(Palo palo) {
+	public boolean hayCartasDelPalo(Palo palo) {
 		for (Carta carta : this.mano) {
 			if (carta.getPalo().equals(palo)) {
 				return true;
@@ -106,9 +124,15 @@ public class Jugador {
 		return false;
 	}
 	
-	
-	public String getPuntaje() {
-		return Integer.toString(puntaje);
+	public void tengo2DeTrebol(){
+		boolean tengo = false;
+		for (Carta carta : this.mano) {
+			if(carta.es2deTrebol()){
+				tengo = true;
+				break;
+			}
+		}
+		clienteOut.println(tengo);
 	}
 
 	public int getPuntos() {
@@ -116,16 +140,16 @@ public class Jugador {
 		return puntaje;
 	}
 
+	public void getSNombre() {
+		clienteOut.println(nombre);
+	}
+
 	public String getNombre() {
-		return this.nombre;
+		return nombre;
 	}
 
-	public Pozojugador getPozo() {
-		return pozo;
-	}
-
-	public void setPozo(Pozojugador pozo) {
-		this.pozo = pozo;
+	public void getThis() {
+		clienteOut.println(Serializable.deObjetoAString(this));
 	}
 
 	public void setNombre(String nombre) {
@@ -135,28 +159,25 @@ public class Jugador {
 	public void setPuntaje(int puntaje) {
 		this.puntaje = puntaje;
 	}
-	 
+
+	@Override
+	public String toString() {
+		return this.nombre;
+	}
 
 	public static void main(java.lang.String argv[]) {
 		try {
-			Jugador jugador = new Jugador("");
-			//System.out.println(ReflectionUtils.invokeMethod(jugador, "getPuntos")); //convencion solo se manda 1 parametro);
-			Socket socket = new Socket("localhost",9999);
+			Jugador jugador = new Jugador();
+			Socket socket = new Socket("localhost", 1234);
 			clienteOut = new PrintStream(socket.getOutputStream());
 			serverIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-			while(true){
+			while (true) {
 				String lectura = serverIn.readLine();
-				String[] split = lectura.split("!");
-				if(split.length >1){
-					ReflectionUtils.invokeMethod(jugador, split[0],split[1]); //convencion solo se manda 1 parametro
-				}else
-					ReflectionUtils.invokeMethod(jugador, lectura); //convencion solo se manda 1 parametro
-				
+				ReflectionUtils.invokeMethod(jugador, lectura);
 			}
-		}catch (IOException e) {
+		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-	}	
-	
+	}
+
 }
