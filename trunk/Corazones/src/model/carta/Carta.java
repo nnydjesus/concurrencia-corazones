@@ -2,24 +2,25 @@ package model.carta;
 
 import java.io.Serializable;
 
+public class Carta implements Serializable {
+	private static final long serialVersionUID = 1L;
 
-public class Carta implements Serializable{
 	/* Atributos */
-
 	private Palo palo;
 	private int numero;
-	private boolean cambiada = false; // utilizado en el momento de cambiar 3
-										// cartas
+
+	// cartas
 
 	public Carta() {
 		palo = Palo.NADA;
 		numero = 0;
 	}
 
-	
-	public void setCambiada(boolean estado) {
-		cambiada = estado;
+	public Carta(int num, Palo palo) {
+		this.numero = num;
+		this.palo = palo;
 	}
+
 
 	/*
 	 * Borra una carta, es decir, pone el palo como "blanco" y el numero como
@@ -28,7 +29,6 @@ public class Carta implements Serializable{
 	public void borrar_carta() {
 		palo = Palo.NADA;
 		numero = 0;
-		cambiada = false;
 	}
 
 	/*
@@ -53,16 +53,12 @@ public class Carta implements Serializable{
 	public void copiar(Carta c) {
 		numero = c.numero;
 		palo = c.palo;
-		cambiada = c.cambiada;
 	}
 
-	public boolean estaCambiada() {
-		return cambiada;
-	}
-	
+
 	@Override
 	public String toString() {
-		return this.numero + " de "+ this.palo;
+		return this.numero + " de " + this.palo;
 	}
 
 	public Palo getPalo() {
